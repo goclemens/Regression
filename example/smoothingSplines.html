@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+
+  <head>
+
+    <meta charset="utf-8" />
+
+    <script src="lib/d3.min.js"></script>
+    <script src="lib/d3-selection-multi.min.js"></script>
+    <script src="lib/math.min.js"></script>
+
+    <link rel="stylesheet" href="smoothingSplines.css">
+    <script src="LinearRegression.js"></script>
+    <script src="linearRegressionTest.js"></script>
+
+    <script src="bases/truncPower.js"></script>
+    <script src="bases/linear.js"></script>
+    <script src="Regression.js"></script>
+
+    <script src="createData2D.js"></script>
+
+    <script src="ridgeRegression.js"></script>
+    <script src="Splines.js"></script>
+
+
+
+  </head>
+
+
+
+	<body>
+
+    <form>
+      <label id="label">lambda: 0.00001</label>
+      <input type="range" id="points" min="0.1" max="500" value="0" step="0.1">
+    </form>
+
+    <p id="dof">Estimated Degrees of Freedom: </p>
+
+    <!-- main script -->
+    <script src="smoothingSplines.js"></script>    
+
+	</body>
+
+</html>

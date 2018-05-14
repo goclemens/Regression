@@ -1,0 +1,19 @@
+{
+  "name": "hw-regression",
+  "version": "0.1.0",
+  "description": "basic regression library",
+  "main": "/src/Regression.js",
+  "directories": {
+    "example": "example",
+    "lib": "src",
+    "bin": "builds"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Clemens Hübner-Worseck",
+  "license": "MIT",
+  "dependencies": {
+    "mathjs": "latest"
+  }
+}
