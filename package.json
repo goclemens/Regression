@@ -1,6 +1,6 @@
 {
   "name": "hw-regression",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "basic regression library",
   "main": "/src/Regression.js",
   "directories": {
