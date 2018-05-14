@@ -1,5 +1,5 @@
-import truncPower from "/bases/truncPower.js";
-import linear from "/bases/linear.js";
+import truncPower from "./bases/truncPower.js";
+import linear from "./bases/linear.js";
 
 
 // #### object definition ####

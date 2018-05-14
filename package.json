@@ -9,11 +9,12 @@
     "bin": "builds"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c"
   },
   "author": "Clemens Hübner-Worseck",
   "license": "MIT",
   "dependencies": {
-    "mathjs": "latest"
+    "mathjs": "^4.2.2"
   }
 }
