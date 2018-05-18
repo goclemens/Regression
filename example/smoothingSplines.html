@@ -4,25 +4,13 @@
   <head>
 
     <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="smoothingSplines.css">
+    <script src="https://d3js.org/d3.v5.min.js"></script>
 
-    <script src="lib/d3.min.js"></script>
-    <script src="lib/d3-selection-multi.min.js"></script>
-    <script src="lib/math.min.js"></script>
+    <script src="../builds/RegressionFull.min.js"></script>
 
-    <link rel="stylesheet" href="smoothingSplines.css">
-    <script src="LinearRegression.js"></script>
-    <script src="linearRegressionTest.js"></script>
-
-    <script src="bases/truncPower.js"></script>
-    <script src="bases/linear.js"></script>
-    <script src="Regression.js"></script>
-
+    <!-- helper functions -->
     <script src="createData2D.js"></script>
-
-    <script src="ridgeRegression.js"></script>
-    <script src="Splines.js"></script>
-
-
 
   </head>
 
@@ -30,12 +18,27 @@
 
 	<body>
 
-    <form>
-      <label id="label">lambda: 0.00001</label>
-      <input type="range" id="points" min="0.1" max="500" value="0" step="0.1">
-    </form>
+    <div id="options">
+      <p>
+        <label for="points" id="labelPoints">points: 60</label>
+        <input type="range" id="points" min="1" max="200" value="60" step="1">
+      </p>
+      <p>
+        <label for="lambda" id="labelLambda">lambda: 0.01</label>
+        <input type="range" id="lambda" min="0.01" max="50" value="0" step="0.01">
+      </p>
+      <p>
+        <label for="bases">basis</label>
+        <select id="bases"></select>
+      </p>
+      <p>
+        <label for="regualizer">regualizer</label>
+        <select name="regualizer" id="regualizer"></select>
+      </p>
+      <p id="dof">Estimated Degrees of Freedom: </p>
+    </div>
 
-    <p id="dof">Estimated Degrees of Freedom: </p>
+    
 
     <!-- main script -->
     <script src="smoothingSplines.js"></script>    

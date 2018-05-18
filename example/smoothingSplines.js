@@ -1,228 +1,252 @@
-//#### DATA ####
-// create random points for testing (SIN)
-var data = createData2D(60);
-data = data[0].map(function(v,i) {return {x:v,y:data[1][i]}})
-              .sort(function(a,b){return a.x-b.x})
+// #### INITILAZING ####
 
-var X = data.map(function(value) {return value.x});
-var Y = data.map(function(value) {return value.y});
+  // ---- globals and defaults ----
+    var pointNum = 60;
+    var lambda = 2.00;
+    var basis = "trunc-power";
+    var regualizer = "Sq2ndDer";
 
-var lambda = Number(document.getElementById("points").value)/10;
+    var margin = {top: 20, right: 40, bottom: 20, left: 40};
+    var width_outer = 960;
+    var height_outer = 500;
+    var plotColors = ["blue","red","purple","green"];
 
-// make regression and sample graphdata
-var regressionTest = new Regression({
-                                      data: {X:X,Y:Y},
-                                      basis: "trunc-power",
-                                      // regualizer: "ridge",
-                                      //knots: [0,1,3,3.5,5.4,5.8],
-                                      lambda: lambda,
-                                    });
+    var showPlot = true;
+    var showPlotDer = true;
+    var showPlot2ndDer = true;
 
-console.log("here")
+    // dependent options
+    var width = width_outer - margin.left - margin.right;
+    var height = height_outer - margin.top - margin.bottom;
 
-var dof = regressionTest.calcRegression().dof;
+    var dataNeedUpdate = true;
+    var regResults;
+    var sampled;
+    var sampledDer;
+    var sample2ndDer;
+    var dataFit = [];
+    var dataDerFit = [];
+    var data2ndDerFit = [];
+  // ------------------------------
 
-var sampled = regressionTest.sample([-0.1,6],100);
-var sampledDer = regressionTest.sampleDer([-0.1,6],100);
-var sampled2ndDer = regressionTest.sample2ndDer([-0.1,6],200);
+  // ---- UI Elements ----
+    var ui_points = document.getElementById("points");
+    var ui_lambda = document.getElementById("lambda");
+    var ui_bases = document.getElementById("bases");
+    var ui_regualizer = document.getElementById("regualizer");
+    var ui_dof = document.getElementById("dof")
 
-var dataFit = sampled.X.map(function(value,index) {return {'x':value, 'y':sampled.Y[index]}});
-var dataDerFit = sampledDer.X.map(function(value,index) {return {'x':value, 'y':sampledDer.Y[index]}});
-var data2ndDerFit = sampled2ndDer.X.map(function(value,index) {return {'x':value, 'y':sampled2ndDer.Y[index]}});
+    var label_points = document.getElementById("labelPoints");
+    var label_lambda = document.getElementById("labelLambda");
 
-regressionTest.calcRegression({regualizer: "ridge"});
+    // set defaults and init select elements
+    ui_points.value = pointNum;
+    label_points.innerHTML = "points: "+pointNum;
+    ui_lambda.value = lambda;
+    label_lambda.innerHTML = "lambda: "+lambda;
+    for (basisId in Regression.prototype.bases) {
+      let option = document.createElement("OPTION");
+      option.value = basisId;
+      option.innerHTML = basisId;
+      ui_bases.appendChild(option);
+    }
+    ui_bases.value = basis;
+    for (reg of ["Sq2ndDer","ridge","none"]) {
+      let option = document.createElement("OPTION");
+      option.value = reg;
+      option.innerHTML = reg;
+      ui_regualizer.appendChild(option);
+    }
+    ui_regualizer.value = regualizer;
 
-var sampledRidge = regressionTest.sample([-0.1,6],100);
-var dataRidge = sampledRidge.X.map(function(value,index) {return {'x':value, 'y':sampledRidge.Y[index]}});
-//##############
+    // UI Events
+    ui_points.oninput = function() {
+      pointNum = Number(ui_points.value);
+      label_points.innerHTML = "points: "+pointNum;
+    }
+    ui_points.onchange = function() {
+      dataNeedUpdate = true;      
+      update();
+    }
+    ui_lambda.oninput = function() {
+      lambda = Number(ui_lambda.value);
+      label_lambda.innerHTML = "lambda: "+lambda;
+    }
+    ui_lambda.onchange = function() {
+      update();
+    }
+    ui_bases.onchange = function() {
+      basis = ui_bases.options[ui_bases.selectedIndex].value;
+      update();
+    }
+    ui_regualizer.onchange = function() {
+      regualizer = ui_regualizer.options[ui_regualizer.selectedIndex].value;
+      update();
+    }
+  // ---------------------
 
-// #### inputs/options ####
-document.getElementById("points").style.width = "700px";
-var lambda = Number(document.getElementById("points").value);
-d3.select("label")
-  .text("lambda: " + parseFloat(Math.round(lambda * 100) / 100).toFixed(2));
+  // ---- data ----
+    var data = createData2D(pointNum);
+    data = data[0].map(function(v,i) {return {x:v,y:data[1][i]}})
+                  .sort(function(a,b){return a.x-b.x})
 
+    var X = data.map(function(value) {return value.x});
+    var Y = data.map(function(value) {return value.y});
+  // --------------
 
+  // ---- Regression and sampleData ----
+    var regression = new Regression({
+      data: {X:X,Y:Y},
+      basis: basis,
+      regualizer: regualizer,
+      lambda: lambda,
+    });
+  // -----------------------------------
 
-d3.select("#dof")
-  .text("Estimated Degrees of Freedom: " + dof);
+  // ---- D3 Visualization ----
+    var svg = d3.select("body").append("svg")
+      .attr("width", width_outer)
+      .attr("height", height_outer)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var margin = {top: 80, right: 180, bottom: 80, left: 180};
-var width_outer = 960;
-var height_outer = 500;
+    var y = d3.scaleLinear()
+        .domain([-2, 3])
+        .range([height, 0]);
 
-// dependent options
-var width = width_outer - margin.left - margin.right;
-var height = height_outer - margin.top - margin.bottom;
+    var x = d3.scaleLinear()
+        .domain([0, 6])
+        .range([0, width])
 
-// #### calculation ####
-var basis = smoothingSplines(data, data);
-var output = RidgeRegression(basis, lambda);
+    // axis
+    var xAxis = d3.axisBottom()
+    .scale(x)
+    var yAxis = d3.axisLeft()
+    .scale(y)
 
+    svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis)
 
+    svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis);
 
-var params = output[0];
-var dof = output[1];
+    // line overlay
+    var line = d3.line()
+      .x(function(d) { return x(d.x); })
+      .y(function(d) { return y(d.y); });
 
-dof = Math.round(dof * 100)/100;
-
-// Generate smooth line
-var Xhat = [];
-var i = 0;
-var j = 0;
-
-for (i = 1; i < 600; i++){
-  var val = smoothingSplines([{'x': i/100, 'y':0}], data);
-
-  var yhat = 0.0;
-
-	for (j = 0; j < params.length; j++){
-		yhat += params[j][0] * val.x[0][j];
-  }
-
-	Xhat.push({'x': i/100, 'y': yhat});
-}
-
-// #### visualization ####
-d3.select("#dof")
-	.text("Estimated Degrees of Freedom: " + dof);
-
-
-
-var svg = d3.select("body").append("svg")
-	.attr("width", width_outer)
-  .attr("height", height_outer)
-	.append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-var y = d3.scaleLinear()
-		.domain([-2, 3])
-		.range([height, 0]);
-
-var x = d3.scaleLinear()
-		.domain([0, 6])
-    .range([0, width])
-
-// axis
-var xAxis = d3.axisBottom()
-	.scale(x)
-
-
-var yAxis = d3.axisLeft()
-	.scale(y)
-
-
-svg.append("g")
-	.attr("class", "x axis")
-	.attr("transform", "translate(0," + height + ")")
-	.call(xAxis)
-
-svg.append("g")
-	.attr("class", "y axis")
-	.call(yAxis);
-
-
-// scatterplott of data
-svg.selectAll(".dot")
-	.data(data)
-	.enter().append("circle")
-	.attr("class", "dot")
-	.attr("r", 3.5)
-	.attr("cx", function(d){
-		return x(d.x);
-	})
-	.attr("cy", function(d){
-		return y(d.y)
-	})
-	.style("fill", "black");
-
-  
-// line overlay
-var line = d3.line()
-	.x(function(d) { return x(d.x); })
-  .y(function(d) { return y(d.y); });
-
-svg.append("path")
+    var plot = svg.append("path")
       .datum(dataFit)
       .attr("id","dataFit")
       .attr("class", "line")
-      .attr("d", line);
+      .attr("d", line)
+      .style("stroke",plotColors[0]);
 
-svg.append("path")
+    var plotDer = svg.append("path")
       .datum(dataDerFit)
       .attr("id","dataDerFit")
       .attr("class", "line")
       .attr("d", line)
-      .style("stroke","red")
+      .style("stroke",plotColors[1]);
 
-svg.append("path")
+    var plot2ndDer = svg.append("path")
       .datum(data2ndDerFit)
       .attr("id","data2ndDerFit")
       .attr("class", "line")
       .attr("d", line)
-      .style("stroke","purple")
+      .style("stroke",plotColors[2]);
+  // --------------------------
 
-svg.append("path")
-      .datum(dataRidge)
-      .attr("id","dataRidge")
-      .attr("class", "line")
-      .attr("d", line)
-      .style("stroke","green")
+  // !START!
+  update();
+// #####################
 
 
-// update for input change
+// main update call
+function update() {
+  if (dataNeedUpdate) {updateData();}
+  updateRegression();
+  updateUI();
+  updateRender();
+  dataNeedUpdate = false;
+}
 
-d3.select("#points")
-	.on("input", function(d){
-		
-		var lambda = document.getElementById("points").value/10;
-		d3.select("label")
-      .text("lambda: " + parseFloat(Math.round(lambda * 100) / 100).toFixed(2));
+// single update calls
+function updateData() {
+  data = createData2D(pointNum);
+  data = data[0].map(function(v,i) {return {x:v,y:data[1][i]}})
+                .sort(function(a,b){return a.x-b.x})
 
-    var dof = regressionTest.calcRegression({lambda: lambda, regualizer: "Sq2ndDer"}).dof;
+  X = data.map(function(value) {return value.x});
+  Y = data.map(function(value) {return value.y});
+}
+function updateRegression() {
+  // update Regression and the sampled data
+  regResults = regression.calcRegression({
+    data: {X:X,Y:Y},
+    basis: basis,
+    lambda: lambda,
+    regualizer: regualizer
+  });
 
+  // sample data from analytic regression
+  sampled = regression.sample([-0.1,6],100);
+  sampledDer = regression.sampleDer([-0.1,6],100);
+  sampled2ndDer = regression.sample2ndDer([-0.1,6],200);
+  // convert to d3 format
+  dataFit = sampled.X.map(function(value,index) {return {'x':value, 'y':sampled.Y[index]}});
+  dataDerFit = sampledDer.X.map(function(value,index) {return {'x':value, 'y':sampledDer.Y[index]}});
+  data2ndDerFit = sampled2ndDer.X.map(function(value,index) {return {'x':value, 'y':sampled2ndDer.Y[index]}});
+}
+function updateUI() {
 
-		d3.select("#dof")
-			.text("Estimated Degrees of Freedom: " + dof);
+  ui_dof.innerHTML = "Estimated Degrees of Freedom: " + Math.round(regResults.dof*100)/100;
 
+}
+// main render function
+function updateRender() {
+  if (dataNeedUpdate) {updatePoints();}
+  if (showPlot) {updatePlot()};
+  if (showPlotDer) {updateDer()};
+  if (showPlot2ndDer) {update2ndDer()};
+}
 
-
-    var sampled = regressionTest.sample([-0.1,6],100);
-    var sampledDer = regressionTest.sampleDer([-0.1,6],100);
-    var sampled2ndDer = regressionTest.sample2ndDer([-0.1,6],200);
-
-    var dataFit = sampled.X.map(function(value,index) {return {'x':value, 'y':sampled.Y[index]}});
-    var dataDerFit = sampledDer.X.map(function(value,index) {return {'x':value, 'y':sampledDer.Y[index]}});
-    var data2ndDerFit = sampled2ndDer.X.map(function(value,index) {return {'x':value, 'y':sampled2ndDer.Y[index]}});
-
-    regressionTest.calcRegression({regualizer: "ridge"});
-
-    var sampledRidge = regressionTest.sample([-0.1,6],100);
-    var dataRidge = sampledRidge.X.map(function(value,index) {return {'x':value, 'y':sampledRidge.Y[index]}});
-
-		svg.selectAll("#dataFit")
-		      .datum(dataFit)
-		      .transition()
-		      .attr("class", "line")
-		      .attr("d", line);
-
-    svg.selectAll("#dataDerFit")
-          .datum(dataDerFit)
-          .transition()
-          .attr("class", "line")
-          .attr("d", line);
-
-    svg.selectAll("#data2ndDerFit")
-          .datum(data2ndDerFit)
-          .transition()
-          .attr("class", "line")
-          .attr("d", line);
-
-    svg.selectAll("#dataRidge")
-          .datum(dataRidge)
-          .transition()
-          .attr("class", "line")
-          .attr("d", line);
-
-});
+// render functions
+function updatePoints() {
+  svg.selectAll(".dot").remove();
+  // scatterplott of data
+  svg.selectAll(".dot")
+    .data(data)
+    .enter().append("circle")
+    .attr("class", "dot")
+    .attr("r", 3.5)
+    .attr("cx", function(d){
+      return x(d.x);
+    })
+    .attr("cy", function(d){
+      return y(d.y)
+    })
+    .style("fill", "black");
+}
+function updatePlot() {
+  plot.datum(dataFit)
+  .transition()
+  .attr("class", "line")
+  .attr("d", line);
+}
+function updateDer() {
+  plotDer.datum(dataDerFit)
+  .transition()
+  .attr("class", "line")
+  .attr("d", line);
+}
+function update2ndDer() {
+  plot2ndDer.datum(data2ndDerFit)
+  .transition()
+  .attr("class", "line")
+  .attr("d", line);
+}
 
