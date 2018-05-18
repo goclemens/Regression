@@ -1,11 +1,25 @@
+label {
+  display: inline-block;
+  width: 100px;
+}
+
+input[type=range] {
+  width: 350px;
+}
+
+select {
+  width: 150px;
+}
 
 .axis {
   font: 10px sans-serif;
 }
+
 path {
     stroke-width: 2;
     fill: none;
 }
+
 .axis path,
 .axis line {
   fill: none;
