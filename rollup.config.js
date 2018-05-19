@@ -16,6 +16,17 @@ export default [
     output: {
         format: 'umd',
         name: 'Regression',
+        file: 'builds/Regression.min.js'
+    },
+    plugins: [
+        uglify()
+    ]
+},
+{
+    input: 'src/Regression.js',
+    output: {
+        format: 'umd',
+        name: 'Regression',
         file: 'builds/RegressionFull.js'
     },
     plugins: [
