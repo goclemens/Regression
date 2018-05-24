@@ -41,7 +41,8 @@ export default [
     output: {
         format: 'umd',
         name: 'Regression',
-        file: 'builds/RegressionFull.min.js'
+        file: 'builds/RegressionFull.min.js',
+        sourcemap: 'inline'
     },
     plugins: [
         resolve(),
