@@ -5,11 +5,16 @@
     var lambda = 2.00;
     var basis = "trunc-power";
     var regualizer = "Sq2ndDer";
+    var knotmode = "auto";
+    var knotnumber = 10;
 
     var margin = {top: 20, right: 40, bottom: 20, left: 40};
     var width_outer = 960;
     var height_outer = 500;
     var plotColors = ["blue","red","purple","green"];
+    var knotsel_width = 6;
+    var knotsel_height = 20;
+    var knotsel_strokeWidth = 2;
 
     var showPlot = true;
     var showPlotDer = true;
@@ -20,6 +25,10 @@
     var height = height_outer - margin.top - margin.bottom;
 
     var dataNeedUpdate = true;
+    var knotsNeedUpdate = true;
+    var knotsRenderNeedUpdate = true;
+    var dragOffset = 0;
+
     var regResults;
     var sampled;
     var sampledDer;
@@ -27,6 +36,20 @@
     var dataFit = [];
     var dataDerFit = [];
     var data2ndDerFit = [];
+
+    // initalize default knots for auto or manual knotmode (data interval [0,6])
+    var knots;
+    switch (knotmode) {
+      case "manual":
+        knots = new Array(knotnumber);
+        knots = knots.fill(0).map((value,index) => 6*(index/knotnumber+1/(2*knotnumber)) );
+        break;
+    
+      default:
+        knots = false;
+        break;
+    }
+
   // ------------------------------
 
   // ---- UI Elements ----
@@ -34,6 +57,9 @@
     var ui_lambda = document.getElementById("lambda");
     var ui_bases = document.getElementById("bases");
     var ui_regualizer = document.getElementById("regualizer");
+    var ui_knotmodeAuto = document.getElementById("knotmodeAuto");
+    var ui_knotmodeManual = document.getElementById("knotmodeManual");
+    var ui_knotnumber = document.getElementById("knotnumber");
     var ui_dof = document.getElementById("dof")
 
     var label_points = document.getElementById("labelPoints");
@@ -58,6 +84,18 @@
       ui_regualizer.appendChild(option);
     }
     ui_regualizer.value = regualizer;
+    switch (knotmode) {
+      case "manual":
+        ui_knotmodeManual.checked = true;
+        ui_knotnumber.disabled = false;
+        break;
+    
+      default:
+        ui_knotmodeAuto.checked = true;
+        ui_knotnumber.disabled = true;
+        break;
+    }
+    ui_knotnumber.value = knotnumber;
 
     // UI Events
     ui_points.oninput = function() {
@@ -65,7 +103,7 @@
       label_points.innerHTML = "points: "+pointNum;
     }
     ui_points.onchange = function() {
-      dataNeedUpdate = true;      
+      dataNeedUpdate = true;
       update();
     }
     ui_lambda.oninput = function() {
@@ -83,6 +121,38 @@
       regualizer = ui_regualizer.options[ui_regualizer.selectedIndex].value;
       update();
     }
+    ui_knotmodeAuto.onchange = function() {
+      knotmode = "auto";
+      knots = false;
+      ui_knotnumber.disabled = true;
+      knotsNeedUpdate = true;
+      update();
+    }
+    ui_knotmodeManual.onchange = function() {
+      knotmode = "manual";
+      knots = new Array(knotnumber);
+      knots = knots.fill(0).map((value,index) => 6*(index/knotnumber+1/(2*knotnumber)) );
+      ui_knotnumber.disabled = false;
+      knotsNeedUpdate = true;
+      update();
+    }
+    ui_knotnumber.onchange = function() {
+      knotnumber = Number(ui_knotnumber.value);
+      if (knotnumber < knots.length) {
+        knots.length = knotnumber;
+      } else {
+        let lastKnot = knots[knots.length-1];
+        let end = knotnumber-knots.length
+        for (let i=0; i<end;i++) {
+          knots.push(lastKnot+(i+1)*0.08);
+        }
+      }
+      knotsNeedUpdate = true;
+      update();
+    }
+
+
+
   // ---------------------
 
   // ---- data ----
@@ -94,7 +164,7 @@
     var Y = data.map(function(value) {return value.y});
   // --------------
 
-  // ---- Regression and sampleData ----
+  // ---- Regression ----
     var regression = new Regression({
       data: {X:X,Y:Y},
       basis: basis,
@@ -158,6 +228,23 @@
       .attr("class", "line")
       .attr("d", line)
       .style("stroke",plotColors[2]);
+
+    // knot selection
+    var knotselectors = svg.append("g")
+      .attr("id","knotselectors");
+
+    // drag event functions for knotselectors
+    function onDragStart_knot() {
+      dragOffset =  d3.select(this).attr("x")-d3.event.x;
+    }
+    function onDrag_knot() {
+      d3.select(this).attr("x", (d3.event.x + dragOffset) );
+    }
+    function onDragEnd_knot(d,i) {
+      knots[i] = x.invert(Number(d3.select(this).attr("x"))+knotsel_width/2+knotsel_strokeWidth);
+      knotsNeedUpdate = true
+      update();
+    }
   // --------------------------
 
   // !START!
@@ -168,6 +255,7 @@
 // main update call
 function update() {
   if (dataNeedUpdate) {updateData();}
+  if (knotsNeedUpdate) {updateKnots();}
   updateRegression();
   updateUI();
   updateRender();
@@ -183,14 +271,20 @@ function updateData() {
   X = data.map(function(value) {return value.x});
   Y = data.map(function(value) {return value.y});
 }
+function updateKnots() {
+  if (knots) {knots.sort((a,b) => a-b);}
+}
 function updateRegression() {
   // update Regression and the sampled data
   regResults = regression.calcRegression({
     data: {X:X,Y:Y},
     basis: basis,
     lambda: lambda,
-    regualizer: regualizer
+    regualizer: regualizer,
+    knots: knots
   });
+
+  knots = regression.knots;
 
   // sample data from analytic regression
   sampled = regression.sample([-0.1,6],100);
@@ -206,9 +300,11 @@ function updateUI() {
   ui_dof.innerHTML = "Estimated Degrees of Freedom: " + Math.round(regResults.dof*100)/100;
 
 }
+
 // main render function
 function updateRender() {
   if (dataNeedUpdate) {updatePoints();}
+  if (knotsNeedUpdate) {updateKnotsRender();}
   if (showPlot) {updatePlot()};
   if (showPlotDer) {updateDer()};
   if (showPlot2ndDer) {update2ndDer()};
@@ -229,7 +325,31 @@ function updatePoints() {
     .attr("cy", function(d){
       return y(d.y)
     })
-    .style("fill", "black");
+    .style("fill", "black")
+}
+function updateKnotsRender() {
+  knotselectors.selectAll(".knotselector").remove();
+  
+  if (knotmode == "manual") {
+    knotselectors.selectAll(".knotselector")
+      .data(knots)
+      .enter().append("rect")
+        .attr("class", "knotselector")
+        .attr("width",knotsel_width)
+        .attr("height",knotsel_height)
+        .attr("x", function(d) {return  x(d)-knotsel_width/2-knotsel_strokeWidth})
+        .attr("y", height-knotsel_height*2/3)
+        .attr("fill", "rgba(0,0,0,0)")
+        .attr("stroke", "rgba(150,150,150,0.75)")
+        .attr("stroke-width", knotsel_strokeWidth)
+        .call(d3.drag()
+          .on("start",onDragStart_knot)
+          .on("drag",onDrag_knot)
+          .on("end",onDragEnd_knot)
+        );
+  }
+
+  knotsNeedUpdate = false;
 }
 function updatePlot() {
   plot.datum(dataFit)

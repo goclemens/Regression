@@ -2,9 +2,15 @@ label {
   display: inline-block;
   width: 100px;
 }
+label.radioLabel {
+  width: auto;
+}
 
 input[type=range] {
   width: 350px;
+}
+input[type=number] {
+  width: 4em;
 }
 
 select {

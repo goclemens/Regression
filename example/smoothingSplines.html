@@ -35,6 +35,20 @@
         <label for="regualizer">regualizer</label>
         <select name="regualizer" id="regualizer"></select>
       </p>
+      <p>
+
+        <div id="radiogroup_knotmode">
+          <label for="radiogroup_knotmode">knot mode</label>
+
+          <input type="radio" id="knotmodeAuto" name="knotmode" value="auto" checked>
+          <label for="knotmodeAuto" class="radioLabel">auto</label>
+      
+          <input type="radio" id="knotmodeManual" name="knotmode" value="manual">
+          <label for="knotmodeManual" class="radioLabel">manual</label>
+
+          <input type="number" id="knotnumber" value="10" disabled="true">
+        </div>
+      </p>
       <p id="dof">Estimated Degrees of Freedom: </p>
     </div>
 
