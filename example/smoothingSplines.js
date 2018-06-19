@@ -233,15 +233,42 @@
     var knotselectors = svg.append("g")
       .attr("id","knotselectors");
 
+    var xIndicator = knotselectors.append("line")
+      .attr("x1",100)
+      .attr("x2",100)
+      .attr("y1",0)
+      .attr("y2",height-2/3*knotsel_height)
+      .style("stroke", "rgba(0,0,0,0)");
+    var xText = knotselectors.append("text")
+      .text("")
+      .attr("x",100)
+      .attr("y",0);
+
+
     // drag event functions for knotselectors
     function onDragStart_knot() {
       dragOffset =  d3.select(this).attr("x")-d3.event.x;
+      xIndicator
+        .attr("x1",(d3.event.x + dragOffset+knotsel_width/2))
+        .attr("x2",(d3.event.x + dragOffset+knotsel_width/2))
+        .style("stroke", "rgba(150,150,150,0.75)");
+      xText
+        .text(x.invert(Number(d3.select(this).attr("x"))+knotsel_width/2+knotsel_strokeWidth).toFixed(2))
+        .attr("x",d3.event.x + dragOffset+knotsel_width/2);
     }
     function onDrag_knot() {
       d3.select(this).attr("x", (d3.event.x + dragOffset) );
+      xIndicator
+        .attr("x1",(d3.event.x + dragOffset+knotsel_width/2))
+        .attr("x2",(d3.event.x + dragOffset+knotsel_width/2));
+      xText
+        .text(x.invert(Number(d3.select(this).attr("x"))+knotsel_width/2+knotsel_strokeWidth).toFixed(2))
+        .attr("x",d3.event.x + dragOffset+knotsel_width/2);
     }
     function onDragEnd_knot(d,i) {
       knots[i] = x.invert(Number(d3.select(this).attr("x"))+knotsel_width/2+knotsel_strokeWidth);
+      xIndicator.style("stroke", "rgba(0,0,0,0)");
+      xText.text("");
       knotsNeedUpdate = true
       update();
     }
