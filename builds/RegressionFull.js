@@ -59333,6 +59333,23 @@
 	    return {X:X,Y:Y};
 	  };
 
+	  this.analyticString = function(input) {
+	    var knots = input.knots;
+	    var estPara = input.estPara;
+
+	    var string = "";
+	    string += estPara[0];
+	    string += estPara[1] >= 0 ? "+"+estPara[1]+"x" : estPara[1]+"x";
+	    string += estPara[2] >= 0 ? "+"+estPara[2]+"x^2" : estPara[2]+"x^2";
+	    string += estPara[3] >= 0 ? "+"+estPara[3]+"x^3" : estPara[3]+"x^3";
+	    for (let i = 0; i < knots.length; i++) {
+	      string += estPara[i+4] >= 0 ? "+"+estPara[i+4] : estPara[i+4];
+	      string += knots[i] >= 0 ? "(x+"+knots[i]+")^3" : +"(x"+knots[i]+")^3";
+	    }
+
+	    return string;
+	  };
+
 	  //#### private functions #####
 	  function calcBaseMatrix(positions,knots) {
 
@@ -59506,6 +59523,16 @@
 
 	  };
 
+	  this.analyticString = function(input) {
+	    var estPara = input.estPara;
+
+	    var string = "";
+	    string += estPara[0];
+	    string += estPara[1] >= 0 ? "+"+estPara[1]+"x" : estPara[1]+"x";
+
+	    return string;
+	  };
+
 	  this.sample = function(input) {
 	    var interval = input.interval;
 	    var res = input.res;
@@ -59548,7 +59575,6 @@
 	  this.sample2ndDer = function(input) {
 	    var interval = input.interval;
 	    var res = input.res;
-	    var estPara = input.estPara;
 
 	    var positions = [];
 	    positions.length = res;
@@ -59712,6 +59738,19 @@
 	  this.dof = output.dof;
 
 	  return output;
+	};
+
+	// get an string with the analytic function the regression produced
+	Regression.prototype.analyticString = function() {
+
+	  if (!this.estPara) {
+	    this.calcRegression();
+	  }
+
+	  return this.currentBasis.analyticString({
+	    estPara : this.estPara,
+	    knots: this.knots
+	  });
 	};
 
 	// sample the regression function in a given interval with the given resolution,
