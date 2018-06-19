@@ -146,7 +146,7 @@ var truncPower = new function() {
     string += estPara[3] >= 0 ? "+"+estPara[3]+"x^3" : estPara[3]+"x^3";
     for (let i = 0; i < knots.length; i++) {
       string += estPara[i+4] >= 0 ? "+"+estPara[i+4] : estPara[i+4];
-      string += knots[i] >= 0 ? "(x+"+knots[i]+")^3" : +"(x"+knots[i]+")^3";
+      string += knots[i] >= 0 ? "(x"+(-knots[i])+")^3" : +"(x+"+(-knots[i])+")^3";
     }
 
     return string;
