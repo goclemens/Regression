@@ -79,6 +79,19 @@ Regression.prototype.calcRegression = function(options) {
   return output;
 }
 
+// get an string with the analytic function the regression produced
+Regression.prototype.analyticString = function() {
+
+  if (!this.estPara) {
+    this.calcRegression();
+  }
+
+  return this.currentBasis.analyticString({
+    estPara : this.estPara,
+    knots: this.knots
+  });
+}
+
 // sample the regression function in a given interval with the given resolution,
 //  -> if not done yet, trigger the regression calculation
 Regression.prototype.sample = function(interval,res) {

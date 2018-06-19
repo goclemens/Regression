@@ -28,6 +28,16 @@ var linear = new function() {
 
   }
 
+  this.analyticString = function(input) {
+    var estPara = input.estPara;
+
+    var string = ""
+    string += estPara[0];
+    string += estPara[1] >= 0 ? "+"+estPara[1]+"x" : estPara[1]+"x";
+
+    return string;
+  }
+
   this.sample = function(input) {
     var interval = input.interval;
     var res = input.res;
@@ -70,7 +80,6 @@ var linear = new function() {
   this.sample2ndDer = function(input) {
     var interval = input.interval;
     var res = input.res;
-    var estPara = input.estPara;
 
     var positions = [];
     positions.length = res;
