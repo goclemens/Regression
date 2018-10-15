@@ -107,6 +107,22 @@ var linear = new function() {
 
   }
 
+  this.evalDer = function(input) {
+    var position = input.pos;
+    var estPara = input.estPara;
+
+    return {X:[position],Y:[estPara[0]]};
+
+  }
+
+  this.eval2ndDer = function(input) {
+    var position = input.pos;
+    var estPara = input.estPara;
+
+    return {X:[position],Y:[0]};
+
+  }
+
   this.evalIntegral = function(input) {
     var a = input.interval[0];
     var b = input.interval[1];

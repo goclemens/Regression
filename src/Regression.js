@@ -59,11 +59,10 @@ Regression.prototype.calcRegression = function(options) {
 
   if (options) {
     Object.assign(this,options);
-  }
-
-  if (options.basis) {
-    this.setBasis(options.basis);
-    delete this.basis;
+    if (options.basis) {
+      this.setBasis(options.basis);
+      delete this.basis;
+    }
   }
 
   var output = this.currentBasis.calcRegression({
@@ -146,6 +145,36 @@ Regression.prototype.eval = function(pos) {
   }
 
   return this.currentBasis.eval({
+    pos: pos,
+    estPara : this.estPara,
+    knots: this.knots
+  })
+
+}
+
+// evaluate the 1st derivative of regression function at the given position
+Regression.prototype.evalDer = function(pos) {
+
+  if (!this.estPara) {
+    this.calcRegression();
+  }
+
+  return this.currentBasis.evalDer({
+    pos: pos,
+    estPara : this.estPara,
+    knots: this.knots
+  })
+
+}
+
+// evaluate the 2nd derivative of regression function at the given position
+Regression.prototype.eval2ndDer = function(pos) {
+
+  if (!this.estPara) {
+    this.calcRegression();
+  }
+
+  return this.currentBasis.eval2ndDer({
     pos: pos,
     estPara : this.estPara,
     knots: this.knots
