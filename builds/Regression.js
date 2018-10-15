@@ -199,6 +199,30 @@
 
     };
 
+    this.evalDer = function(input) {
+      var position = input.pos;
+      var knots = input.knots;
+      var estPara = input.estPara;
+
+      var B = calcBaseDerMatrix([position],knots);
+      var Y = math.multiply(B,estPara);
+
+      return {X:[position],Y:Y};
+
+    };
+
+    this.eval2ndDer = function(input) {
+      var position = input.pos;
+      var knots = input.knots;
+      var estPara = input.estPara;
+
+      var B = calcBase2ndDerMatrix([position],knots);
+      var Y = math.multiply(B,estPara);
+
+      return {X:[position],Y:Y};
+
+    };
+
     this.evalIntegral = function(input) {
       var interval = input.interval;
       var knots = input.knots;
@@ -232,7 +256,7 @@
       string += estPara[3] >= 0 ? "+"+estPara[3]+"x^3" : estPara[3]+"x^3";
       for (let i = 0; i < knots.length; i++) {
         string += estPara[i+4] >= 0 ? "+"+estPara[i+4] : estPara[i+4];
-        string += knots[i] >= 0 ? "(x"+(-knots[i])+")^3" : +"(x+"+(-knots[i])+")^3";
+        string += knots[i] > 0 ? "(x"+(-knots[i])+")^3" : +"(x+"+(-knots[i])+")^3";
       }
 
       return string;
@@ -490,6 +514,22 @@
 
     };
 
+    this.evalDer = function(input) {
+      var position = input.pos;
+      var estPara = input.estPara;
+
+      return {X:[position],Y:[estPara[0]]};
+
+    };
+
+    this.eval2ndDer = function(input) {
+      var position = input.pos;
+      var estPara = input.estPara;
+
+      return {X:[position],Y:[0]};
+
+    };
+
     this.evalIntegral = function(input) {
       var a = input.interval[0];
       var b = input.interval[1];
@@ -608,11 +648,10 @@
 
     if (options) {
       Object.assign(this,options);
-    }
-
-    if (options.basis) {
-      this.setBasis(options.basis);
-      delete this.basis;
+      if (options.basis) {
+        this.setBasis(options.basis);
+        delete this.basis;
+      }
     }
 
     var output = this.currentBasis.calcRegression({
@@ -695,6 +734,36 @@
     }
 
     return this.currentBasis.eval({
+      pos: pos,
+      estPara : this.estPara,
+      knots: this.knots
+    })
+
+  };
+
+  // evaluate the 1st derivative of regression function at the given position
+  Regression.prototype.evalDer = function(pos) {
+
+    if (!this.estPara) {
+      this.calcRegression();
+    }
+
+    return this.currentBasis.evalDer({
+      pos: pos,
+      estPara : this.estPara,
+      knots: this.knots
+    })
+
+  };
+
+  // evaluate the 2nd derivative of regression function at the given position
+  Regression.prototype.eval2ndDer = function(pos) {
+
+    if (!this.estPara) {
+      this.calcRegression();
+    }
+
+    return this.currentBasis.eval2ndDer({
       pos: pos,
       estPara : this.estPara,
       knots: this.knots
