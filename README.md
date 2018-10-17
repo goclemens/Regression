@@ -3,7 +3,7 @@
 ## Summary
 
 The Regression Object can be used to calculate an analytic approximation of a given set of value pairs. The result is a linear combination of chosen basis functions which fit the given values the best. The calculated parameters are saved within the Regression object.
-The resulting function is a fit of the given value pairs. The function, its first or second derivative can be evaluated at any given position or 
+The resulting function is a fit of the given value pairs. The function, its first or second derivative can be evaluated at any given position or sampled over a given interval.
 
 ## Usage
 
