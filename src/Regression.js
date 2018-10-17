@@ -12,7 +12,7 @@ function Regression(options) {
   this.currentBasis = false;
   this.knots = false;
   this.regualizer = false;
-  this.lambda = 0;
+  this.lambda = 0.01;
   this.estPara = false;
   this.dof = 0;
 
