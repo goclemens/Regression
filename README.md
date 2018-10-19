@@ -5,6 +5,11 @@
 The Regression Object can be used to calculate an analytic approximation of a given set of value pairs. The result is a linear combination of chosen basis functions which fit the given values the best. The calculated parameters are saved within the Regression object.
 The resulting function is a fit of the given value pairs. The function, its first or second derivative can be evaluated at any given position or sampled over a given interval.
 
+The implementation is losly based on
+
+http://bl.ocks.org/jonahwilliams/62be9996afe5c2531625
+
+
 ## Usage
 
 ### Example
@@ -27,7 +32,7 @@ var options = {
 var regression = new Regression(options);
 regression.calcRegression();
 
-var fittedValues = regression.sample([0,10],50);
+var fittedValues = regression.sample([-0.1,10],100);
 ```
 ![example fit](./example.PNG)
 Plot of the given *data* and the sampled values of the regression function *fittedValues* (done with d3.js).
