@@ -7,6 +7,9 @@ import "./methods/samplers.js";
 import "./methods/analyticString.js";
 import "./methods/evalers.js";
 
+import "./methods/means.js";
+
+
 
 // #### object definition ####
 function Regression(options) {
