@@ -11,6 +11,13 @@ Regression.prototype.calcRegression = function(options) {
     }
   }
 
+  if (!this.data) {
+    console.log("Regression - data is not defined");
+    return false;
+  }
+
+  this.dataInterval = [this.data.X[0],this.data.X[this.data.X.length-1]];
+
   var output = this.currentBasis.calcRegression({
     data: this.data,
     regualizer: this.regualizer,
@@ -22,4 +29,4 @@ Regression.prototype.calcRegression = function(options) {
   this.dof = output.dof;
 
   return output;
-}
+} 

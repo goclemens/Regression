@@ -8,7 +8,7 @@ import "./methods/analyticString.js";
 import "./methods/evalers.js";
 
 import "./methods/means.js";
-
+import "./methods/roots.js";
 
 
 // #### object definition ####
