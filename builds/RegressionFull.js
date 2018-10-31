@@ -59374,6 +59374,114 @@
 	    return string;
 	  };
 
+	  this.roots = function(input) {
+	    console.log("!!!! roots not implemented yet !!!!");
+	    return [];
+	  };
+
+	  this.rootsDer = function(input) {
+	    var knots = input.knots;
+	    var estPara = input.estPara;
+	    var dataInterval = input.dataInterval;
+
+	    var tmpRoot;
+	    var roots = [];
+
+	    var a = estPara[1];
+	    var b = 2*estPara[2];
+	    var c = 3*estPara[3];
+
+	    // solutions before knots
+	    if (estPara[3] != 0) {
+	      var interm = Math.pow(b,2)-4*c*a;
+
+	      if (interm >= 0 ) {
+	        let interm2 = Math.sqrt(interm);
+	        if ( (tmpRoot = (-b+interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
+	          roots.push(tmpRoot);
+	        }        if ( (tmpRoot = (-b-interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
+	          roots.push(tmpRoot);
+	        }      }
+
+	    } else if (estPara[2] != 0) {
+	      if ( (tmpRoot = -a/b) >= dataInterval[0] && tmpRoot <= knots[0]) {
+	        roots.push(tmpRoot);
+	      }    }
+
+	    // solutions after knots
+	    for (let i=0 ; i<knots.length ; i++){
+
+	      var a = estPara[1];
+	      var b = 2*estPara[2];
+	      var c = 3*estPara[3];
+
+	      for (let j=0 ; j<=i ; j++) {
+	        a += 3*estPara[4+j]*Math.pow(knots[j],2);
+	        b += -6*estPara[4+j]*knots[j];
+	        c += 3*estPara[4+j];
+	      }
+
+	      if (c != 0) {
+	        var interm = Math.pow(b,2)-4*c*a;
+	        var rightBorder = knots[i+1] || dataInterval[1];
+
+	        if (interm >= 0 ) {
+	          let interm2 = Math.sqrt(interm);
+	          if ( (tmpRoot = (-b+interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder) {
+	            roots.push(tmpRoot);
+	          }          if ( (tmpRoot = (-b-interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder ) {
+	            roots.push(tmpRoot);
+	          }        }
+
+	      } else if (b != 0) {
+	        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
+	          roots.push(tmpRoot);
+	        }      }
+
+	    }
+
+	    return roots;
+	  };
+
+	  this.roots2ndDer = function(input) {
+	    var knots = input.knots;
+	    var estPara = input.estPara;
+	    var dataInterval = input.dataInterval;
+
+	    var tmpRoot;
+	    var roots = [];
+
+	    // solutions before knots
+	    if (estPara[3] != 0) {
+	      if ( (tmpRoot = -2*estPara[2]/(6*estPara[3]) ) >= dataInterval[0] && tmpRoot <= knots[0]) {
+	        roots.push(tmpRoot);
+	      }    }
+
+	    // solutions after knots
+	    for (let i=0 ; i<knots.length ; i++){
+
+	      var a = 2*estPara[2];
+	      var b = 6*estPara[3];
+
+	      for (let j=0 ; j<=i ; j++) {
+	        a += -6*estPara[4+j]*knots[j];
+	        b += 6*estPara[4+j];
+	      }
+
+	      var rightBorder = knots[i+1] || dataInterval[1];
+
+	      if (b != 0) {
+
+	        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
+	          roots.push(tmpRoot);
+	        }      }
+
+	    }
+
+	    return roots;
+
+	  };
+
 	  //#### private functions #####
 	  function calcBaseMatrix(positions,knots) {
 
@@ -59703,58 +59811,6 @@
 
 	};
 
-	// #### object definition ####
-	function Regression(options) {
-
-	  // ---- Constructor ----
-
-	  // init properties
-	  this.data = false;
-	  this.currentBasis = false;
-	  this.knots = false;
-	  this.regualizer = false;
-	  this.lambda = 0;
-	  this.estPara = false;
-	  this.dof = 0;
-
-	  Object.assign(this,options);
-
-	  if (options.basis) {
-	    this.setBasis(options.basis);
-	    delete this.basis;
-	  }
-	  // ---------------------
-
-	}
-	// ###########################
-
-
-
-	// #### properties ####
-	Regression.prototype.bases = {
-	  "trunc-power": truncPower,
-	  "linear": linear
-	};
-	// ####################
-
-
-
-	// #### methods ####
-	// set basis to the given basis id
-	Regression.prototype.setBasis = function(basisId) {
-	  var basis = this.bases[basisId];
-	  this.currentBasis = basis;
-
-	  if (!this.knots) {
-	    if (basis.defaults.knots) {
-	      this.knots = basis.calcKnots(this.data);
-	    }
-	  }
-	  if (!this.regualizer) {
-	    this.regualizer = basis.defaults.regualizer;
-	  }
-	};
-
 	// trigger the calculation of the regression and save  the estemation parameter and degree of freedom to the object
 	Regression.prototype.calcRegression = function(options) {
 
@@ -59765,6 +59821,13 @@
 	      delete this.basis;
 	    }
 	  }
+
+	  if (!this.data) {
+	    console.log("Regression - data is not defined");
+	    return false;
+	  }
+
+	  this.dataInterval = [this.data.X[0],this.data.X[this.data.X.length-1]];
 
 	  var output = this.currentBasis.calcRegression({
 	    data: this.data,
@@ -59777,19 +59840,6 @@
 	  this.dof = output.dof;
 
 	  return output;
-	};
-
-	// get an string with the analytic function the regression produced
-	Regression.prototype.analyticString = function() {
-
-	  if (!this.estPara) {
-	    this.calcRegression();
-	  }
-
-	  return this.currentBasis.analyticString({
-	    estPara : this.estPara,
-	    knots: this.knots
-	  });
 	};
 
 	// sample the regression function in a given interval with the given resolution,
@@ -59836,6 +59886,19 @@
 	    estPara : this.estPara,
 	    knots: this.knots
 	  })
+	};
+
+	// get an string with the analytic function the regression produced
+	Regression.prototype.analyticString = function() {
+
+	  if (!this.estPara) {
+	    this.calcRegression();
+	  }
+
+	  return this.currentBasis.analyticString({
+	    estPara : this.estPara,
+	    knots: this.knots
+	  });
 	};
 
 	// evaluate the regression function at the given position
@@ -59896,6 +59959,134 @@
 	    knots: this.knots
 	  })
 
+	};
+
+	Regression.prototype.mean = function(interval) {
+
+	  return this.evalIntegral(interval)/(interval[1]-interval[0]);
+
+	};
+
+	Regression.prototype.meanDer = function(interval) {
+
+	  return (this.eval(interval[1])-this.eval(interval[0]))/(interval[1]-interval[0]);
+
+	};
+
+	Regression.prototype.mean2ndDer = function(interval) {
+
+	  return (this.evalDer(interval[1])-this.evalDer(interval[0]))/(interval[1]-interval[0]);
+
+	};
+
+	Regression.prototype.rootsAll = function() {
+
+	  var rootsFunc = this.currentBasis.roots({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  });
+
+	  var rootsDer = this.currentBasis.rootsDer({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  });
+
+	  var roots2ndDer = this.currentBasis.roots2ndDer({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  });
+
+	  return {
+	    func: rootsFunc,
+	    der: rootsDer,
+	    secDer: roots2ndDer
+	  }
+
+	};
+
+	Regression.prototype.roots = function() {
+
+	  return this.currentBasis.roots({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  })
+
+	};
+
+	Regression.prototype.rootsDer = function() {
+
+	  return this.currentBasis.rootsDer({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  })
+
+	};
+
+	Regression.prototype.roots2ndDer = function() {
+
+	  return this.currentBasis.roots2ndDer({
+	    dataInterval: this.dataInterval,
+	    estPara: this.estPara,
+	    knots: this.knots
+	  })
+
+	};
+
+	// #### object definition ####
+	function Regression(options) {
+
+	  // ---- Constructor ----
+
+	  // init properties
+	  this.data = false;
+	  this.currentBasis = false;
+	  this.knots = false;
+	  this.regualizer = false;
+	  this.lambda = 0.01;
+	  this.estPara = false;
+	  this.dof = 0;
+
+	  Object.assign(this,options);
+
+	  if (options.basis) {
+	    this.setBasis(options.basis);
+	    delete this.basis;
+	  }
+	  // ---------------------
+
+	}
+	// ###########################
+
+
+
+	// #### properties ####
+	Regression.prototype.bases = {
+	  "trunc-power": truncPower,
+	  "linear": linear
+	};
+	// ####################
+
+
+
+	// #### methods ####
+	// set basis to the given basis id
+	Regression.prototype.setBasis = function(basisId) {
+	  var basis = this.bases[basisId];
+	  this.currentBasis = basis;
+
+	  if (!this.knots) {
+	    if (basis.defaults.knots) {
+	      this.knots = basis.calcKnots(this.data);
+	    }
+	  }
+	  if (!this.regualizer) {
+	    this.regualizer = basis.defaults.regualizer;
+	  }
 	};
 
 	return Regression;
