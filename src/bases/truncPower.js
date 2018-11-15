@@ -201,16 +201,18 @@ var truncPower = new function() {
         let interm2 = Math.sqrt(interm);
         if ( (tmpRoot = (-b+interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
           roots.push(tmpRoot);
-        };
+        }
         if ( (tmpRoot = (-b-interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
           roots.push(tmpRoot);
-        };
+        }
       }
 
     } else if (estPara[2] != 0) {
       if ( (tmpRoot = -a/b) >= dataInterval[0] && tmpRoot <= knots[0]) {
         roots.push(tmpRoot);
-      };
+      }
+    } else if (estPara[1] = 0) {
+      roots.push([dataInterval[0],knots[0]]);
     }
 
     // solutions after knots
@@ -234,16 +236,18 @@ var truncPower = new function() {
           let interm2 = Math.sqrt(interm);
           if ( (tmpRoot = (-b+interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder) {
             roots.push(tmpRoot);
-          };
+          }
           if ( (tmpRoot = (-b-interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder ) {
             roots.push(tmpRoot);
-          };
+          }
         }
 
       } else if (b != 0) {
         if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
           roots.push(tmpRoot);
-        };
+        }
+      } else if (a = 0) {
+        roots.push([knots[i],rightBorder]);
       }
 
     }
@@ -263,7 +267,9 @@ var truncPower = new function() {
     if (estPara[3] != 0) {
       if ( (tmpRoot = -2*estPara[2]/(6*estPara[3]) ) >= dataInterval[0] && tmpRoot <= knots[0]) {
         roots.push(tmpRoot);
-      };
+      }
+    } else if (estPara[2] = 0) {
+      roots.push([dataInterval[0],knots[0]]);
     }
 
     // solutions after knots
@@ -283,7 +289,10 @@ var truncPower = new function() {
 
         if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
           roots.push(tmpRoot);
-        };
+        }
+
+      } else if (estPara[2] = 0) {
+        roots.push([knots[i],rightBorder]);
       }
 
     }
