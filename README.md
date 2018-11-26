@@ -105,6 +105,28 @@ Plot of the given *data* and the sampled values of the regression function *fitt
 
     Evaluates the definite integral of the regression function over the given *interval*. Triggers *Regression.calcRegression()* if not done yet.
 
+- Regression.roots()
+
+    Gives the roots of the regression function.
+
+- Regression.rootsDer()
+
+    Gives the roots of the derivative of the regression function.
+
+- Regression.roots2ndDer()
+
+    Gives the roots of the second derivative of the regression function.
+
+- Regression.extrema()
+
+    Returns an object containing the minima, maxima and saddlepoints of the regression function.
+    ```js
+    {
+        min: [],
+        max: [],
+        saddle: []
+    }
+    ```
 - Regression.analyticString() !**experimental**!
 
     Returns a string which represents the analytic function given by the regression.
