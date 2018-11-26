@@ -59399,14 +59399,19 @@
 	        let interm2 = Math.sqrt(interm);
 	        if ( (tmpRoot = (-b+interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
 	          roots.push(tmpRoot);
-	        }        if ( (tmpRoot = (-b-interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
+	        }
+	        if ( (tmpRoot = (-b-interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
 	          roots.push(tmpRoot);
-	        }      }
+	        }
+	      }
 
 	    } else if (estPara[2] != 0) {
 	      if ( (tmpRoot = -a/b) >= dataInterval[0] && tmpRoot <= knots[0]) {
 	        roots.push(tmpRoot);
-	      }    }
+	      }
+	    } else if (estPara[1] = 0) {
+	      roots.push([dataInterval[0],knots[0]]);
+	    }
 
 	    // solutions after knots
 	    for (let i=0 ; i<knots.length ; i++){
@@ -59429,14 +59434,19 @@
 	          let interm2 = Math.sqrt(interm);
 	          if ( (tmpRoot = (-b+interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder) {
 	            roots.push(tmpRoot);
-	          }          if ( (tmpRoot = (-b-interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder ) {
+	          }
+	          if ( (tmpRoot = (-b-interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder ) {
 	            roots.push(tmpRoot);
-	          }        }
+	          }
+	        }
 
 	      } else if (b != 0) {
 	        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
 	          roots.push(tmpRoot);
-	        }      }
+	        }
+	      } else if (a = 0) {
+	        roots.push([knots[i],rightBorder]);
+	      }
 
 	    }
 
@@ -59455,7 +59465,10 @@
 	    if (estPara[3] != 0) {
 	      if ( (tmpRoot = -2*estPara[2]/(6*estPara[3]) ) >= dataInterval[0] && tmpRoot <= knots[0]) {
 	        roots.push(tmpRoot);
-	      }    }
+	      }
+	    } else if (estPara[2] = 0) {
+	      roots.push([dataInterval[0],knots[0]]);
+	    }
 
 	    // solutions after knots
 	    for (let i=0 ; i<knots.length ; i++){
@@ -59474,7 +59487,11 @@
 
 	        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
 	          roots.push(tmpRoot);
-	        }      }
+	        }
+
+	      } else if (estPara[2] = 0) {
+	        roots.push([knots[i],rightBorder]);
+	      }
 
 	    }
 
@@ -59768,6 +59785,44 @@
 	    return {X:X,Y:Y};
 	  };
 
+	  this.roots = function(input) {
+
+	    var estPara = input.estPara;
+	    var dataInterval = input.dataInterval;
+
+	    if (estPara[1] != 0) {
+	      return [-estPara[0]/estPara[1]];
+	    }
+	    else if (estPara[0] == 0) {
+	      return [dataInterval];
+	    }
+	    else {
+	      return [];
+	    }
+
+	  };
+
+	  this.rootsDer = function(input) {
+
+	    var estPara = input.estPara;
+	    var dataInterval = input.dataInterval;
+
+	    if (estPara[1] == 0) {
+	      return [dataInterval];
+	    }
+
+	    return [];
+
+	  };
+
+	  this.roots2ndDer = function(input) {
+
+	    var dataInterval = input.dataInterval;
+
+	    return [dataInterval];
+
+	  };
+
 	  //#### private functions #####
 	  function calcBaseMatrix(positions) {
 
@@ -60034,6 +60089,63 @@
 	    estPara: this.estPara,
 	    knots: this.knots
 	  })
+
+	};
+
+	Regression.prototype.extrema = function() {
+
+	  var max = [];
+	  var min = [];
+	  var saddle = [];
+
+
+	  var rootsDer = this.rootsDer();
+
+	  var num = rootsDer.length;
+
+	  // check for min or max or else
+	  for (let i=0 ; i<rootsDer.length ; i++) {
+
+	    if ( Array.isArray(rootsDer[i]) ) {
+	      saddle.push(rootsDer[i]);
+	      continue;
+	    }
+
+	    let secDer = this.eval2ndDer(rootsDer[i]).Y;
+
+	    if (secDer < 0) {
+	      max.push(rootsDer[i]);
+	    }
+
+	    else if (secDer > 0) {
+	      min.push(rootsDer[i]);
+	    }
+
+	    else {
+	      let off = (this.dataInterval[1]-this.dataInterval[0])/10000;
+	      let left = this.evalDer(rootsDer[i]-off).Y;
+	      let right = this.evalDer(rootsDer[i]+off).Y;
+
+	      if ( left < rootsDer[i] && right < rootsDer[i] ) {
+	        max.push(rootsDer[i]);
+	      }
+	      else if ( left > rootsDer[i] && right > rootsDer[i] ) {
+	        min.push(rootsDer[i]);
+	      } else {
+	        saddle.push(rootsDer[i]);
+	      }
+	    }
+
+	  }
+
+
+
+	  return {
+	    max: max,
+	    min: min,
+	    saddle: saddle,
+	    num: num
+	  }
 
 	};
 
