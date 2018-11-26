@@ -113,6 +113,30 @@ var truncPower = new function() {
 
   }
 
+  this.evalDer = function(input) {
+    var position = input.pos;
+    var knots = input.knots;
+    var estPara = input.estPara;
+
+    var B = calcBaseDerMatrix([position],knots);
+    var Y = math.multiply(B,estPara);
+
+    return {X:[position],Y:Y};
+
+  }
+
+  this.eval2ndDer = function(input) {
+    var position = input.pos;
+    var knots = input.knots;
+    var estPara = input.estPara;
+
+    var B = calcBase2ndDerMatrix([position],knots);
+    var Y = math.multiply(B,estPara);
+
+    return {X:[position],Y:Y};
+
+  }
+
   this.evalIntegral = function(input) {
     var interval = input.interval;
     var knots = input.knots;
@@ -133,6 +157,148 @@ var truncPower = new function() {
     var Y = math.multiply(B,estPara);
 
     return {X:X,Y:Y};
+  }
+
+  this.analyticString = function(input) {
+    var knots = input.knots;
+    var estPara = input.estPara;
+
+    var string = "";
+    string += estPara[0];
+    string += estPara[1] >= 0 ? "+"+estPara[1]+"x" : estPara[1]+"x";
+    string += estPara[2] >= 0 ? "+"+estPara[2]+"x^2" : estPara[2]+"x^2";
+    string += estPara[3] >= 0 ? "+"+estPara[3]+"x^3" : estPara[3]+"x^3";
+    for (let i = 0; i < knots.length; i++) {
+      string += estPara[i+4] >= 0 ? "+"+estPara[i+4] : estPara[i+4];
+      string += knots[i] > 0 ? "(x"+(-knots[i])+")^3" : +"(x+"+(-knots[i])+")^3";
+    }
+
+    return string;
+  }
+
+  this.roots = function(input) {
+    console.log("!!!! roots not implemented yet !!!!");
+    return [];
+  }
+
+  this.rootsDer = function(input) {
+    var knots = input.knots;
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    var tmpRoot;
+    var roots = [];
+
+    var a = estPara[1];
+    var b = 2*estPara[2];
+    var c = 3*estPara[3];
+
+    // solutions before knots
+    if (estPara[3] != 0) {
+      var interm = Math.pow(b,2)-4*c*a;
+
+      if (interm >= 0 ) {
+        let interm2 = Math.sqrt(interm);
+        if ( (tmpRoot = (-b+interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
+          roots.push(tmpRoot);
+        }
+        if ( (tmpRoot = (-b-interm2)/(2*c)) >= dataInterval[0] && tmpRoot <= knots[0]) {
+          roots.push(tmpRoot);
+        }
+      }
+
+    } else if (estPara[2] != 0) {
+      if ( (tmpRoot = -a/b) >= dataInterval[0] && tmpRoot <= knots[0]) {
+        roots.push(tmpRoot);
+      }
+    } else if (estPara[1] = 0) {
+      roots.push([dataInterval[0],knots[0]]);
+    }
+
+    // solutions after knots
+    for (let i=0 ; i<knots.length ; i++){
+
+      var a = estPara[1];
+      var b = 2*estPara[2];
+      var c = 3*estPara[3];
+
+      for (let j=0 ; j<=i ; j++) {
+        a += 3*estPara[4+j]*Math.pow(knots[j],2);
+        b += -6*estPara[4+j]*knots[j];
+        c += 3*estPara[4+j];
+      }
+
+      if (c != 0) {
+        var interm = Math.pow(b,2)-4*c*a;
+        var rightBorder = knots[i+1] || dataInterval[1];
+
+        if (interm >= 0 ) {
+          let interm2 = Math.sqrt(interm);
+          if ( (tmpRoot = (-b+interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder) {
+            roots.push(tmpRoot);
+          }
+          if ( (tmpRoot = (-b-interm2)/(2*c)) > knots[i] && tmpRoot <= rightBorder ) {
+            roots.push(tmpRoot);
+          }
+        }
+
+      } else if (b != 0) {
+        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
+          roots.push(tmpRoot);
+        }
+      } else if (a = 0) {
+        roots.push([knots[i],rightBorder]);
+      }
+
+    }
+
+    return roots;
+  }
+
+  this.roots2ndDer = function(input) {
+    var knots = input.knots;
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    var tmpRoot;
+    var roots = [];
+
+    // solutions before knots
+    if (estPara[3] != 0) {
+      if ( (tmpRoot = -2*estPara[2]/(6*estPara[3]) ) >= dataInterval[0] && tmpRoot <= knots[0]) {
+        roots.push(tmpRoot);
+      }
+    } else if (estPara[2] = 0) {
+      roots.push([dataInterval[0],knots[0]]);
+    }
+
+    // solutions after knots
+    for (let i=0 ; i<knots.length ; i++){
+
+      var a = 2*estPara[2];
+      var b = 6*estPara[3];
+
+      for (let j=0 ; j<=i ; j++) {
+        a += -6*estPara[4+j]*knots[j];
+        b += 6*estPara[4+j];
+      }
+
+      var rightBorder = knots[i+1] || dataInterval[1];
+
+      if (b != 0) {
+
+        if ( (tmpRoot = -a/b) > knots[i] && tmpRoot <= rightBorder ) {
+          roots.push(tmpRoot);
+        }
+
+      } else if (estPara[2] = 0) {
+        roots.push([knots[i],rightBorder]);
+      }
+
+    }
+
+    return roots;
+
   }
 
   //#### private functions #####

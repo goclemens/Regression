@@ -28,6 +28,16 @@ var linear = new function() {
 
   }
 
+  this.analyticString = function(input) {
+    var estPara = input.estPara;
+
+    var string = ""
+    string += estPara[0];
+    string += estPara[1] >= 0 ? "+"+estPara[1]+"x" : estPara[1]+"x";
+
+    return string;
+  }
+
   this.sample = function(input) {
     var interval = input.interval;
     var res = input.res;
@@ -70,7 +80,6 @@ var linear = new function() {
   this.sample2ndDer = function(input) {
     var interval = input.interval;
     var res = input.res;
-    var estPara = input.estPara;
 
     var positions = [];
     positions.length = res;
@@ -98,6 +107,22 @@ var linear = new function() {
 
   }
 
+  this.evalDer = function(input) {
+    var position = input.pos;
+    var estPara = input.estPara;
+
+    return {X:[position],Y:[estPara[0]]};
+
+  }
+
+  this.eval2ndDer = function(input) {
+    var position = input.pos;
+    var estPara = input.estPara;
+
+    return {X:[position],Y:[0]};
+
+  }
+
   this.evalIntegral = function(input) {
     var a = input.interval[0];
     var b = input.interval[1];
@@ -114,6 +139,44 @@ var linear = new function() {
     var Y = math.multiply(B,estPara);
 
     return {X:X,Y:Y};
+  }
+
+  this.roots = function(input) {
+
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    if (estPara[1] != 0) {
+      return [-estPara[0]/estPara[1]];
+    }
+    else if (estPara[0] == 0) {
+      return [dataInterval];
+    }
+    else {
+      return [];
+    }
+
+  }
+
+  this.rootsDer = function(input) {
+
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    if (estPara[1] == 0) {
+      return [dataInterval];
+    }
+
+    return [];
+
+  }
+
+  this.roots2ndDer = function(input) {
+
+    var dataInterval = input.dataInterval;
+
+    return [dataInterval];
+
   }
 
   //#### private functions #####

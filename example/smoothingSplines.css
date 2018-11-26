@@ -1,16 +1,31 @@
+label {
+  display: inline-block;
+  width: 100px;
+}
+label.radioLabel {
+  width: auto;
+}
+
+input[type=range] {
+  width: 350px;
+}
+input[type=number] {
+  width: 4em;
+}
+
+select {
+  width: 150px;
+}
+
 .axis {
   font: 10px sans-serif;
 }
-path { 
-    stroke: steelblue;
+
+path {
     stroke-width: 2;
     fill: none;
 }
 
-.errors {
-	fill: red;
-	fill-opacity: 0.4;
-}
 .axis path,
 .axis line {
   fill: none;
