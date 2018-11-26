@@ -141,6 +141,44 @@ var linear = new function() {
     return {X:X,Y:Y};
   }
 
+  this.roots = function(input) {
+
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    if (estPara[1] != 0) {
+      return [-estPara[0]/estPara[1]];
+    }
+    else if (estPara[0] == 0) {
+      return [dataInterval];
+    }
+    else {
+      return [];
+    }
+
+  }
+
+  this.rootsDer = function(input) {
+
+    var estPara = input.estPara;
+    var dataInterval = input.dataInterval;
+
+    if (estPara[1] == 0) {
+      return [dataInterval];
+    }
+
+    return [];
+
+  }
+
+  this.roots2ndDer = function(input) {
+
+    var dataInterval = input.dataInterval;
+
+    return [dataInterval];
+
+  }
+
   //#### private functions #####
   function calcBaseMatrix(positions) {
 
