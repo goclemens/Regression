@@ -9,7 +9,7 @@ import "./methods/evalers.js";
 
 import "./methods/means.js";
 import "./methods/roots.js";
-
+import "./methods/extrema.js";
 
 // #### object definition ####
 function Regression(options) {
