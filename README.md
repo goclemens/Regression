@@ -9,6 +9,9 @@ The implementation is losly based on
 
 http://bl.ocks.org/jonahwilliams/62be9996afe5c2531625
 
+Tryout at https://goclemens.github.io/Regression/example/smoothingSplines.html
+
+This example is in the example folder of the repository
 
 ## Usage
 
